@@ -20,14 +20,14 @@
             <FluentStack Orientation="Orientation.Vertical" VerticalGap="15">
                 <FluentLabel Typo="Typography.H5">🎲 Zufalls-Team-Generator</FluentLabel>
                 <FluentLabel Typo="Typography.Body">
-                    Geben Sie eine Liste von Spielernamen ein (einen Namen pro Zeile). Die Spieler werden automatisch zufällig in Teams aufgeteilt.
+                    Geben Sie eine Liste von Spielernamen ein. Sie können die Namen pro Zeile, durch Komma oder Semikolon getrennt eingeben. Die Spieler werden automatisch zufällig in Teams aufgeteilt.
                 </FluentLabel>
                 
                 <FluentTextArea @bind-Value="playerListText" 
-                               Label="Spielernamen (ein Name pro Zeile)" 
+                               Label="Spielernamen (pro Zeile, Komma- oder Semikolon-getrennt)" 
                                Rows="8" 
                                Style="width: 100%;" 
-                               Placeholder="Max Mustermann&#10;Anna Schmidt&#10;Tom Müller&#10;Lisa Weber&#10;..." />
+                               Placeholder="Max Mustermann, Anna Schmidt; Tom Müller&#10;Lisa Weber, Felix Schulz&#10;..." />
 
                 @if (!string.IsNullOrEmpty(randomGeneratorError))
                 {
@@ -49,7 +49,7 @@
     }
 
     <FluentGrid Spacing="3">
-        <FluentGridItem xs="12" md="6">
+        <FluentGridItem xs="12" lg="5">
             <FluentCard Style="padding: 20px;">
                 <FluentStack Orientation="Orientation.Vertical" VerticalGap="15">
                     <FluentLabel Typo="Typography.H5">@(editingTeam == null ? "Neues Team erstellen" : "Team bearbeiten")</FluentLabel>
@@ -102,7 +102,7 @@
             </FluentCard>
         </FluentGridItem>
 
-        <FluentGridItem xs="12" md="6">
+        <FluentGridItem xs="12" lg="7">
             <FluentCard Style="padding: 20px;">
                 <FluentStack Orientation="Orientation.Vertical" VerticalGap="15">
                     <FluentLabel Typo="Typography.H5">Registrierte Teams (@TournamentService.Teams.Count)</FluentLabel>
@@ -181,9 +181,9 @@
             return;
         }
 
-        // Parse player names from text area (one per line)
+        // Parse player names from text area - support multiple separators: newline, comma, semicolon
         var players = playerListText
-            .Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+            .Split(new[] { '\n', '\r', ',', ';' }, StringSplitOptions.RemoveEmptyEntries)
             .Select(p => p.Trim())
             .Where(p => !string.IsNullOrWhiteSpace(p))
             .Distinct()

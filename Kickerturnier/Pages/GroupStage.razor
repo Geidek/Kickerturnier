@@ -130,8 +130,8 @@
                 }
                 else
                 {
-                    <div style="overflow-x: auto;">
-                        <FluentDataGrid Items="@standings.AsQueryable()" ResizableColumns="true" Style="width: 100%;">
+                    <div style="overflow-x: auto; width: 100%;">
+                        <FluentDataGrid Items="@standings.AsQueryable()" ResizableColumns="true" Style="min-width: 800px;">
                             <PropertyColumn Property="@(s => s.Position)" Title="Platz" Align="Align.Center" InitialSortDirection="SortDirection.Ascending" IsDefaultSortColumn="true" Sortable="true" />
                             <PropertyColumn Property="@(s => s.Team.Name)" Title="Team" Sortable="true" />
                             <PropertyColumn Property="@(s => s.MatchesPlayed)" Title="Spiele" Align="Align.Center" Sortable="true" />
