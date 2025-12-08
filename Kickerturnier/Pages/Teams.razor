@@ -50,7 +50,7 @@
 
     <FluentGrid Spacing="2">
         <FluentGridItem xs="12" lg="6">
-            <FluentCard Style="padding: 20px; min-height: 500px; height: 100%;">
+            <FluentCard Style="padding: 20px; min-height: 500px;">
                 <FluentStack Orientation="Orientation.Vertical" VerticalGap="15">
                     <FluentLabel Typo="Typography.H5">@(editingTeam == null ? "Neues Team erstellen" : "Team bearbeiten")</FluentLabel>
                     
@@ -103,7 +103,7 @@
         </FluentGridItem>
 
         <FluentGridItem xs="12" lg="6">
-            <FluentCard Style="padding: 20px; min-height: 500px; height: 100%;">
+            <FluentCard Style="padding: 20px; min-height: 500px;">
                 <FluentStack Orientation="Orientation.Vertical" VerticalGap="15">
                     <FluentLabel Typo="Typography.H5">Registrierte Teams (@TournamentService.Teams.Count)</FluentLabel>
 
