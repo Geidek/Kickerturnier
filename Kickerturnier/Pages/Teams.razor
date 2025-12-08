@@ -9,10 +9,44 @@
 <FluentStack Orientation="Orientation.Vertical" VerticalGap="20">
     <FluentCard Style="padding: 20px;">
         <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center">
-            
             <FluentLabel Typo="Typography.H4">Teams verwalten</FluentLabel>
         </FluentStack>
     </FluentCard>
+
+    <!-- Random Team Generator Section -->
+    @if (!hasTournamentStarted)
+    {
+        <FluentCard Style="padding: 20px; background-color: var(--neutral-layer-1);">
+            <FluentStack Orientation="Orientation.Vertical" VerticalGap="15">
+                <FluentLabel Typo="Typography.H5">🎲 Zufalls-Team-Generator</FluentLabel>
+                <FluentLabel Typo="Typography.Body">
+                    Geben Sie eine Liste von Spielernamen ein (einen Namen pro Zeile). Die Spieler werden automatisch zufällig in Teams aufgeteilt.
+                </FluentLabel>
+                
+                <FluentTextArea @bind-Value="playerListText" 
+                               Label="Spielernamen (ein Name pro Zeile)" 
+                               Rows="8" 
+                               Style="width: 100%;" 
+                               Placeholder="Max Mustermann&#10;Anna Schmidt&#10;Tom Müller&#10;Lisa Weber&#10;..." />
+
+                @if (!string.IsNullOrEmpty(randomGeneratorError))
+                {
+                    <FluentMessageBar Intent="MessageIntent.Error">
+                        @randomGeneratorError
+                    </FluentMessageBar>
+                }
+
+                <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="10">
+                    <FluentButton Appearance="Appearance.Accent" OnClick="GenerateRandomTeams">
+                        🎲 Teams generieren
+                    </FluentButton>
+                    <FluentButton Appearance="Appearance.Neutral" OnClick="ClearPlayerList">
+                        Leeren
+                    </FluentButton>
+                </FluentStack>
+            </FluentStack>
+        </FluentCard>
+    }
 
     <FluentGrid Spacing="3">
         <FluentGridItem xs="12" md="6">
@@ -35,18 +69,16 @@
                         @if (editingTeam == null)
                         {
                             <FluentButton Appearance="Appearance.Accent" OnClick="AddTeam">
-                                
-                                Team hinzufügen
+                                ➕ Team hinzufügen
                             </FluentButton>
                         }
                         else
                         {
                             <FluentButton Appearance="Appearance.Accent" OnClick="SaveTeam">
-                                
-                                Speichern
+                                💾 Speichern
                             </FluentButton>
                             <FluentButton Appearance="Appearance.Neutral" OnClick="CancelEdit">
-                                Abbrechen
+                                ❌ Abbrechen
                             </FluentButton>
                         }
                     </FluentStack>
@@ -55,8 +87,7 @@
                     {
                         <FluentDivider />
                         <FluentButton Appearance="Appearance.Accent" OnClick="StartTournament" Style="width: 100%;">
-                            
-                            Turnier starten
+                            🚀 Turnier starten
                         </FluentButton>
                     }
 
@@ -64,8 +95,7 @@
                     {
                         <FluentDivider />
                         <FluentButton Appearance="Appearance.Neutral" OnClick="ResetTournament" Style="width: 100%;">
-                            
-                            Turnier zurücksetzen
+                            🔄 Turnier zurücksetzen
                         </FluentButton>
                     }
                 </FluentStack>
@@ -99,12 +129,12 @@
                                                 </FluentLabel>
                                             }
                                         </FluentStack>
-                                        <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="5">
-                                            <FluentButton Appearance="Appearance.Lightweight" OnClick="@(() => EditTeam(team))">
-                                                
+                                         <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="5">
+                                            <FluentButton Appearance="Appearance.Lightweight" OnClick="@(() => EditTeam(team))" Title="Team bearbeiten">
+                                                ✏️
                                             </FluentButton>
-                                            <FluentButton Appearance="Appearance.Lightweight" OnClick="@(() => DeleteTeam(team.Id))" Disabled="@hasTournamentStarted">
-                                                
+                                            <FluentButton Appearance="Appearance.Lightweight" OnClick="@(() => DeleteTeam(team.Id))" Disabled="@hasTournamentStarted" Title="Team löschen">
+                                                🗑️
                                             </FluentButton>
                                         </FluentStack>
                                     </FluentStack>
@@ -126,9 +156,76 @@
     private Team? editingTeam = null;
     private bool hasTournamentStarted => TournamentService.Matches.Any();
 
+    // Random Team Generator
+    private string playerListText = string.Empty;
+    private string randomGeneratorError = string.Empty;
+
     protected override void OnInitialized()
     {
         TournamentService.OnChange += StateHasChanged;
+    }
+
+    private void GenerateRandomTeams()
+    {
+        randomGeneratorError = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(playerListText))
+        {
+            randomGeneratorError = "Bitte geben Sie mindestens 2 Spielernamen ein.";
+            return;
+        }
+
+        // Parse player names from text area (one per line)
+        var players = playerListText
+            .Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+            .Select(p => p.Trim())
+            .Where(p => !string.IsNullOrWhiteSpace(p))
+            .Distinct()
+            .ToList();
+
+        if (players.Count < 2)
+        {
+            randomGeneratorError = "Bitte geben Sie mindestens 2 Spielernamen ein.";
+            return;
+        }
+
+        // Shuffle the players randomly
+        var random = new Random(Environment.TickCount);
+        players = players.OrderBy(x => random.Next()).ToList();
+
+        // Create teams of 2 players
+        int teamNumber = 1;
+        for (int i = 0; i < players.Count; i += 2)
+        {
+            var team = new Team
+            {
+                Player1Name = players[i],
+                Player2Name = i + 1 < players.Count ? players[i + 1] : string.Empty,
+                Name = $"Team {teamNumber}"
+            };
+
+            // Check if team with same name exists
+            var baseName = team.Name;
+            var counter = 1;
+            while (TournamentService.Teams.Any(t => t.Name.Equals(team.Name, StringComparison.OrdinalIgnoreCase)))
+            {
+                team.Name = $"{baseName} ({counter++})";
+            }
+
+            TournamentService.AddTeam(team);
+            teamNumber++;
+        }
+
+        _ = SaveState();
+        
+        // Clear the input
+        playerListText = string.Empty;
+    }
+
+    private void ClearPlayerList()
+    {
+        playerListText = string.Empty;
+        randomGeneratorError = string.Empty;
     }
 
     private async Task AddTeam()

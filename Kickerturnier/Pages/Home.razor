@@ -28,7 +28,7 @@
                         Erstellen Sie Teams mit je 2 Spielern und starten Sie das Turnier.
                     </FluentLabel>
                     <FluentButton Appearance="Appearance.Accent" OnClick="@(() => Navigation.NavigateTo("/teams"))">
-                        Teams verwalten
+                        👥 Teams verwalten
                     </FluentButton>
                 </FluentStack>
             </FluentCard>
@@ -43,7 +43,7 @@
                         Tragen Sie die Ergebnisse der Vorrundenspiele ein und sehen Sie die Live-Tabelle.
                     </FluentLabel>
                     <FluentButton Appearance="Appearance.Accent" OnClick="@(() => Navigation.NavigateTo("/groupstage"))" Disabled="@(!HasMatches)">
-                        Zur Vorrunde
+                        📊 Zur Vorrunde
                     </FluentButton>
                 </FluentStack>
             </FluentCard>
@@ -58,7 +58,7 @@
                         Sehen Sie das Turnier-Bracket und ermitteln Sie den Champion!
                     </FluentLabel>
                     <FluentButton Appearance="Appearance.Accent" OnClick="@(() => Navigation.NavigateTo("/finalstage"))" Disabled="@(!HasFinalMatches)">
-                        Zur Finalrunde
+                        🏆 Zur Finalrunde
                     </FluentButton>
                 </FluentStack>
             </FluentCard>
@@ -79,8 +79,7 @@
             @if (!string.IsNullOrEmpty(ChampionName))
             {
                 <FluentMessageBar Intent="MessageIntent.Success">
-                    
-                    <strong>Turniersieger: @ChampionName</strong>
+                    🏆 <strong>Turniersieger: @ChampionName</strong>
                 </FluentMessageBar>
             }
         </FluentStack>
@@ -95,7 +94,7 @@
                     Möchten Sie mit Beispiel-Teams starten?
                 </FluentLabel>
                 <FluentButton Appearance="Appearance.Accent" OnClick="InitializeExampleTeams">
-                    Beispiel-Teams laden
+                    📝 Beispiel-Teams laden
                 </FluentButton>
             </FluentStack>
         </FluentCard>
