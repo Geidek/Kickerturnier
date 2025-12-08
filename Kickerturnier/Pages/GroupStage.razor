@@ -132,20 +132,20 @@
                 {
                     <div style="overflow-x: auto;">
                         <FluentDataGrid Items="@standings.AsQueryable()" ResizableColumns="true" Style="width: 100%;">
-                            <PropertyColumn Property="@(s => s.Position)" Title="Pl." Align="Align.Center" InitialSortDirection="SortDirection.Ascending" IsDefaultSortColumn="true" />
-                            <PropertyColumn Property="@(s => s.Team.Name)" Title="Team" />
-                            <PropertyColumn Property="@(s => s.MatchesPlayed)" Title="Sp." Align="Align.Center" />
-                            <PropertyColumn Property="@(s => s.Wins)" Title="S" Align="Align.Center" />
-                            <PropertyColumn Property="@(s => s.Draws)" Title="U" Align="Align.Center" />
-                            <PropertyColumn Property="@(s => s.Losses)" Title="N" Align="Align.Center" />
-                            <PropertyColumn Property="@(s => s.GoalsFor)" Title="T+" Align="Align.Center" />
-                            <PropertyColumn Property="@(s => s.GoalsAgainst)" Title="T-" Align="Align.Center" />
-                            <TemplateColumn Title="TD" Align="Align.Center">
+                            <PropertyColumn Property="@(s => s.Position)" Title="Platz" Align="Align.Center" InitialSortDirection="SortDirection.Ascending" IsDefaultSortColumn="true" Sortable="true" />
+                            <PropertyColumn Property="@(s => s.Team.Name)" Title="Team" Sortable="true" />
+                            <PropertyColumn Property="@(s => s.MatchesPlayed)" Title="Spiele" Align="Align.Center" Sortable="true" />
+                            <PropertyColumn Property="@(s => s.Wins)" Title="Siege" Align="Align.Center" Sortable="true" />
+                            <PropertyColumn Property="@(s => s.Draws)" Title="Unentschieden" Align="Align.Center" Sortable="true" />
+                            <PropertyColumn Property="@(s => s.Losses)" Title="Niederlagen" Align="Align.Center" Sortable="true" />
+                            <PropertyColumn Property="@(s => s.GoalsFor)" Title="Tore +" Align="Align.Center" Sortable="true" />
+                            <PropertyColumn Property="@(s => s.GoalsAgainst)" Title="Tore -" Align="Align.Center" Sortable="true" />
+                            <TemplateColumn Title="Tordifferenz" Align="Align.Center" SortBy="@(GridSort<Standing>.ByAscending(s => s.GoalDifference))">
                                 <span style="@(context.GoalDifference > 0 ? "color: green; font-weight: bold;" : context.GoalDifference < 0 ? "color: red;" : "")">
                                     @(context.GoalDifference > 0 ? $"+{context.GoalDifference}" : context.GoalDifference.ToString())
                                 </span>
                             </TemplateColumn>
-                            <TemplateColumn Title="Pkt." Align="Align.Center">
+                            <TemplateColumn Title="Punkte" Align="Align.Center" SortBy="@(GridSort<Standing>.ByAscending(s => s.Points))">
                                 <strong>@context.Points</strong>
                             </TemplateColumn>
                         </FluentDataGrid>
