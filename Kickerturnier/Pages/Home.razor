@@ -1,0 +1,140 @@
+﻿@page "/"
+@inject TournamentService TournamentService
+@inject LocalStorageService LocalStorage
+@inject NavigationManager Navigation
+@implements IDisposable
+
+<PageTitle>Kickerturnier - Home</PageTitle>
+
+<FluentStack Orientation="Orientation.Vertical" VerticalGap="20">
+    <FluentCard Style="padding: 30px;">
+        <FluentStack Orientation="Orientation.Vertical" VerticalGap="15">
+            
+            <FluentLabel Typo="Typography.H3">Willkommen zum Kickerturnier!</FluentLabel>
+            <FluentLabel Typo="Typography.Body">
+                Verwalten Sie Ihr Kickerturnier mit 5 Teams (oder mehr). Das Turnier besteht aus einer Vorrunde 
+                (Jeder-gegen-Jeden) und einer Finalrunde mit Finale und Spiel um Platz 3.
+            </FluentLabel>
+        </FluentStack>
+    </FluentCard>
+
+    <FluentGrid Spacing="3">
+        <FluentGridItem xs="12" sm="6" md="4">
+            <FluentCard Style="height: 100%; padding: 20px;">
+                <FluentStack Orientation="Orientation.Vertical" VerticalGap="10">
+                    
+                    <FluentLabel Typo="Typography.H5">1. Teams verwalten</FluentLabel>
+                    <FluentLabel Typo="Typography.Body">
+                        Erstellen Sie Teams mit je 2 Spielern und starten Sie das Turnier.
+                    </FluentLabel>
+                    <FluentButton Appearance="Appearance.Accent" OnClick="@(() => Navigation.NavigateTo("/teams"))">
+                        Teams verwalten
+                    </FluentButton>
+                </FluentStack>
+            </FluentCard>
+        </FluentGridItem>
+
+        <FluentGridItem xs="12" sm="6" md="4">
+            <FluentCard Style="height: 100%; padding: 20px;">
+                <FluentStack Orientation="Orientation.Vertical" VerticalGap="10">
+                    
+                    <FluentLabel Typo="Typography.H5">2. Vorrunde</FluentLabel>
+                    <FluentLabel Typo="Typography.Body">
+                        Tragen Sie die Ergebnisse der Vorrundenspiele ein und sehen Sie die Live-Tabelle.
+                    </FluentLabel>
+                    <FluentButton Appearance="Appearance.Accent" OnClick="@(() => Navigation.NavigateTo("/groupstage"))" Disabled="@(!HasMatches)">
+                        Zur Vorrunde
+                    </FluentButton>
+                </FluentStack>
+            </FluentCard>
+        </FluentGridItem>
+
+        <FluentGridItem xs="12" sm="6" md="4">
+            <FluentCard Style="height: 100%; padding: 20px;">
+                <FluentStack Orientation="Orientation.Vertical" VerticalGap="10">
+                    
+                    <FluentLabel Typo="Typography.H5">3. Finalrunde</FluentLabel>
+                    <FluentLabel Typo="Typography.Body">
+                        Sehen Sie das Turnier-Bracket und ermitteln Sie den Champion!
+                    </FluentLabel>
+                    <FluentButton Appearance="Appearance.Accent" OnClick="@(() => Navigation.NavigateTo("/finalstage"))" Disabled="@(!HasFinalMatches)">
+                        Zur Finalrunde
+                    </FluentButton>
+                </FluentStack>
+            </FluentCard>
+        </FluentGridItem>
+    </FluentGrid>
+
+    <FluentCard Style="padding: 20px;">
+        <FluentStack Orientation="Orientation.Vertical" VerticalGap="10">
+            <FluentLabel Typo="Typography.H5">Aktueller Status</FluentLabel>
+            <FluentStack Orientation="Orientation.Horizontal" VerticalGap="10">
+                <FluentBadge Appearance="Appearance.Accent">@TournamentService.Teams.Count Teams</FluentBadge>
+                <FluentBadge Appearance="Appearance.Neutral">@GroupStageMatches Vorrundenspiele</FluentBadge>
+                @if (HasFinalMatches)
+                {
+                    <FluentBadge Appearance="Appearance.Lightweight">@FinalMatches Finalspiele</FluentBadge>
+                }
+            </FluentStack>
+            @if (!string.IsNullOrEmpty(ChampionName))
+            {
+                <FluentMessageBar Intent="MessageIntent.Success">
+                    
+                    <strong>Turniersieger: @ChampionName</strong>
+                </FluentMessageBar>
+            }
+        </FluentStack>
+    </FluentCard>
+
+    @if (TournamentService.Teams.Count == 0)
+    {
+        <FluentCard Style="padding: 20px;">
+            <FluentStack Orientation="Orientation.Vertical" VerticalGap="15">
+                <FluentLabel Typo="Typography.H5">Schnellstart</FluentLabel>
+                <FluentLabel Typo="Typography.Body">
+                    Möchten Sie mit Beispiel-Teams starten?
+                </FluentLabel>
+                <FluentButton Appearance="Appearance.Accent" OnClick="InitializeExampleTeams">
+                    Beispiel-Teams laden
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+    }
+</FluentStack>
+
+@code {
+    private bool HasMatches => TournamentService.Matches.Any(m => m.Phase == MatchPhase.GroupStage);
+    private bool HasFinalMatches => TournamentService.Matches.Any(m => m.Phase == MatchPhase.Final);
+    private int GroupStageMatches => TournamentService.Matches.Count(m => m.Phase == MatchPhase.GroupStage);
+    private int FinalMatches => TournamentService.Matches.Count(m => m.Phase == MatchPhase.Final || m.Phase == MatchPhase.ThirdPlace);
+    private string? ChampionName => TournamentService.GetChampion()?.Name;
+
+    protected override async Task OnInitializedAsync()
+    {
+        TournamentService.OnChange += StateHasChanged;
+        
+        // Load state from local storage
+        var savedState = await LocalStorage.GetItemAsync("kickerturnier_state");
+        if (!string.IsNullOrEmpty(savedState))
+        {
+            TournamentService.DeserializeState(savedState);
+        }
+    }
+
+    private async Task InitializeExampleTeams()
+    {
+        TournamentService.InitializeWithExampleTeams();
+        await SaveState();
+    }
+
+    private async Task SaveState()
+    {
+        var state = TournamentService.SerializeState();
+        await LocalStorage.SetItemAsync("kickerturnier_state", state);
+    }
+
+    public void Dispose()
+    {
+        TournamentService.OnChange -= StateHasChanged;
+    }
+}

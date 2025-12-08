@@ -1,0 +1,260 @@
+@page "/teams"
+@inject TournamentService TournamentService
+@inject LocalStorageService LocalStorage
+@inject NavigationManager Navigation
+@implements IDisposable
+
+<PageTitle>Teams verwalten</PageTitle>
+
+<FluentStack Orientation="Orientation.Vertical" VerticalGap="20">
+    <FluentCard Style="padding: 20px;">
+        <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center">
+            
+            <FluentLabel Typo="Typography.H4">Teams verwalten</FluentLabel>
+        </FluentStack>
+    </FluentCard>
+
+    <FluentGrid Spacing="3">
+        <FluentGridItem xs="12" md="6">
+            <FluentCard Style="padding: 20px;">
+                <FluentStack Orientation="Orientation.Vertical" VerticalGap="15">
+                    <FluentLabel Typo="Typography.H5">@(editingTeam == null ? "Neues Team erstellen" : "Team bearbeiten")</FluentLabel>
+                    
+                    <FluentTextField @bind-Value="teamName" Label="Teamname" Required Style="width: 100%;" />
+                    <FluentTextField @bind-Value="player1Name" Label="Spieler 1 (optional)" Style="width: 100%;" />
+                    <FluentTextField @bind-Value="player2Name" Label="Spieler 2 (optional)" Style="width: 100%;" />
+
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <FluentMessageBar Intent="MessageIntent.Error">
+                            @errorMessage
+                        </FluentMessageBar>
+                    }
+
+                    <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="10">
+                        @if (editingTeam == null)
+                        {
+                            <FluentButton Appearance="Appearance.Accent" OnClick="AddTeam">
+                                
+                                Team hinzufügen
+                            </FluentButton>
+                        }
+                        else
+                        {
+                            <FluentButton Appearance="Appearance.Accent" OnClick="SaveTeam">
+                                
+                                Speichern
+                            </FluentButton>
+                            <FluentButton Appearance="Appearance.Neutral" OnClick="CancelEdit">
+                                Abbrechen
+                            </FluentButton>
+                        }
+                    </FluentStack>
+
+                    @if (TournamentService.Teams.Count >= 2 && !hasTournamentStarted)
+                    {
+                        <FluentDivider />
+                        <FluentButton Appearance="Appearance.Accent" OnClick="StartTournament" Style="width: 100%;">
+                            
+                            Turnier starten
+                        </FluentButton>
+                    }
+
+                    @if (hasTournamentStarted)
+                    {
+                        <FluentDivider />
+                        <FluentButton Appearance="Appearance.Neutral" OnClick="ResetTournament" Style="width: 100%;">
+                            
+                            Turnier zurücksetzen
+                        </FluentButton>
+                    }
+                </FluentStack>
+            </FluentCard>
+        </FluentGridItem>
+
+        <FluentGridItem xs="12" md="6">
+            <FluentCard Style="padding: 20px;">
+                <FluentStack Orientation="Orientation.Vertical" VerticalGap="15">
+                    <FluentLabel Typo="Typography.H5">Registrierte Teams (@TournamentService.Teams.Count)</FluentLabel>
+
+                    @if (!TournamentService.Teams.Any())
+                    {
+                        <FluentMessageBar Intent="MessageIntent.Info">
+                            Noch keine Teams registriert. Fügen Sie mindestens 2 Teams hinzu, um zu starten.
+                        </FluentMessageBar>
+                    }
+                    else
+                    {
+                        <FluentStack Orientation="Orientation.Vertical" VerticalGap="10">
+                            @foreach (var team in TournamentService.Teams)
+                            {
+                                <FluentCard Style="padding: 15px; background-color: var(--neutral-layer-2);">
+                                    <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center">
+                                        <FluentStack Orientation="Orientation.Vertical" Style="flex: 1;">
+                                            <FluentLabel Typo="Typography.H6">@team.Name</FluentLabel>
+                                            @if (!string.IsNullOrEmpty(team.Player1Name) || !string.IsNullOrEmpty(team.Player2Name))
+                                            {
+                                                <FluentLabel Typo="Typography.Body" Style="font-size: 0.9em;">
+                                                    @team.Player1Name@(string.IsNullOrEmpty(team.Player1Name) || string.IsNullOrEmpty(team.Player2Name) ? "" : " & ")@team.Player2Name
+                                                </FluentLabel>
+                                            }
+                                        </FluentStack>
+                                        <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="5">
+                                            <FluentButton Appearance="Appearance.Lightweight" OnClick="@(() => EditTeam(team))">
+                                                
+                                            </FluentButton>
+                                            <FluentButton Appearance="Appearance.Lightweight" OnClick="@(() => DeleteTeam(team.Id))" Disabled="@hasTournamentStarted">
+                                                
+                                            </FluentButton>
+                                        </FluentStack>
+                                    </FluentStack>
+                                </FluentCard>
+                            }
+                        </FluentStack>
+                    }
+                </FluentStack>
+            </FluentCard>
+        </FluentGridItem>
+    </FluentGrid>
+</FluentStack>
+
+@code {
+    private string teamName = string.Empty;
+    private string player1Name = string.Empty;
+    private string player2Name = string.Empty;
+    private string errorMessage = string.Empty;
+    private Team? editingTeam = null;
+    private bool hasTournamentStarted => TournamentService.Matches.Any();
+
+    protected override void OnInitialized()
+    {
+        TournamentService.OnChange += StateHasChanged;
+    }
+
+    private async Task AddTeam()
+    {
+        errorMessage = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(teamName))
+        {
+            errorMessage = "Teamname ist erforderlich.";
+            return;
+        }
+
+        if (TournamentService.Teams.Any(t => t.Name.Equals(teamName, StringComparison.OrdinalIgnoreCase)))
+        {
+            errorMessage = "Ein Team mit diesem Namen existiert bereits.";
+            return;
+        }
+
+        var team = new Team
+        {
+            Name = teamName.Trim(),
+            Player1Name = player1Name.Trim(),
+            Player2Name = player2Name.Trim()
+        };
+
+        TournamentService.AddTeam(team);
+        await SaveState();
+
+        // Clear form
+        teamName = string.Empty;
+        player1Name = string.Empty;
+        player2Name = string.Empty;
+    }
+
+    private void EditTeam(Team team)
+    {
+        editingTeam = team;
+        teamName = team.Name;
+        player1Name = team.Player1Name;
+        player2Name = team.Player2Name;
+        errorMessage = string.Empty;
+    }
+
+    private async Task SaveTeam()
+    {
+        if (editingTeam == null) return;
+
+        errorMessage = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(teamName))
+        {
+            errorMessage = "Teamname ist erforderlich.";
+            return;
+        }
+
+        if (TournamentService.Teams.Any(t => t.Id != editingTeam.Id && t.Name.Equals(teamName, StringComparison.OrdinalIgnoreCase)))
+        {
+            errorMessage = "Ein Team mit diesem Namen existiert bereits.";
+            return;
+        }
+
+        editingTeam.Name = teamName.Trim();
+        editingTeam.Player1Name = player1Name.Trim();
+        editingTeam.Player2Name = player2Name.Trim();
+
+        TournamentService.UpdateTeam(editingTeam);
+        await SaveState();
+
+        CancelEdit();
+    }
+
+    private void CancelEdit()
+    {
+        editingTeam = null;
+        teamName = string.Empty;
+        player1Name = string.Empty;
+        player2Name = string.Empty;
+        errorMessage = string.Empty;
+    }
+
+    private async Task DeleteTeam(Guid teamId)
+    {
+        try
+        {
+            TournamentService.RemoveTeam(teamId);
+            await SaveState();
+            
+            if (editingTeam?.Id == teamId)
+            {
+                CancelEdit();
+            }
+        }
+        catch (InvalidOperationException ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+
+    private async Task StartTournament()
+    {
+        try
+        {
+            TournamentService.GenerateGroupStageMatches();
+            await SaveState();
+            Navigation.NavigateTo("/groupstage");
+        }
+        catch (InvalidOperationException ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+
+    private async Task ResetTournament()
+    {
+        TournamentService.ResetTournament();
+        await SaveState();
+    }
+
+    private async Task SaveState()
+    {
+        var state = TournamentService.SerializeState();
+        await LocalStorage.SetItemAsync("kickerturnier_state", state);
+    }
+
+    public void Dispose()
+    {
+        TournamentService.OnChange -= StateHasChanged;
+    }
+}

@@ -1,0 +1,269 @@
+@page "/groupstage"
+@inject TournamentService TournamentService
+@inject LocalStorageService LocalStorage
+@inject NavigationManager Navigation
+@implements IDisposable
+
+<PageTitle>Vorrunde</PageTitle>
+
+<FluentStack Orientation="Orientation.Vertical" VerticalGap="20">
+    <FluentCard Style="padding: 20px;">
+        <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center">
+            
+            <FluentLabel Typo="Typography.H4">Vorrunde (Jeder gegen Jeden)</FluentLabel>
+        </FluentStack>
+    </FluentCard>
+
+    @if (!groupStageMatches.Any())
+    {
+        <FluentMessageBar Intent="MessageIntent.Warning">
+            
+            Noch keine Vorrundenspiele vorhanden. Gehen Sie zu "Teams verwalten" und starten Sie das Turnier.
+        </FluentMessageBar>
+        <FluentButton Appearance="Appearance.Accent" OnClick="@(() => Navigation.NavigateTo("/teams"))">
+            
+            Zu Teams verwalten
+        </FluentButton>
+    }
+    else
+    {
+        <FluentGrid Spacing="3">
+            <FluentGridItem xs="12" lg="7">
+                <FluentCard Style="padding: 20px;">
+                    <FluentStack Orientation="Orientation.Vertical" VerticalGap="15">
+                        <FluentLabel Typo="Typography.H5">Spiele (@finishedMatches / @totalMatches abgeschlossen)</FluentLabel>
+
+                        @if (isGroupStageComplete)
+                        {
+                            <FluentMessageBar Intent="MessageIntent.Success">
+                                
+                                Alle Vorrundenspiele sind abgeschlossen! Die Finalrunde wurde generiert.
+                            </FluentMessageBar>
+                        }
+
+                        <FluentStack Orientation="Orientation.Vertical" VerticalGap="10">
+                            @foreach (var match in groupStageMatches)
+                            {
+                                <FluentCard Style="padding: 15px; background-color: var(--neutral-layer-2);">
+                                    <FluentStack Orientation="Orientation.Vertical" VerticalGap="10">
+                                        <FluentLabel Typo="Typography.Body" Style="font-weight: 600;">
+                                            Spiel @match.MatchNumber
+                                        </FluentLabel>
+                                        
+                                        <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" Style="gap: 15px;">
+                                            <FluentStack Orientation="Orientation.Vertical" Style="flex: 1; text-align: right;">
+                                                <FluentLabel Typo="Typography.Body" Style="font-weight: 600;">@match.TeamA.Name</FluentLabel>
+                                                @if (!string.IsNullOrEmpty(match.TeamA.Player1Name))
+                                                {
+                                                    <FluentLabel Typo="Typography.Body" Style="font-size: 0.85em; color: var(--neutral-foreground-hint);">
+                                                        @match.TeamA.Player1Name @(string.IsNullOrEmpty(match.TeamA.Player2Name) ? "" : $"& {match.TeamA.Player2Name}")
+                                                    </FluentLabel>
+                                                }
+                                            </FluentStack>
+
+                                            @if (editingMatchId == match.Id)
+                                            {
+                                                <FluentNumberField @bind-Value="editGoalsA" Min="0" Style="width: 80px;" />
+                                                <FluentLabel Typo="Typography.H6">:</FluentLabel>
+                                                <FluentNumberField @bind-Value="editGoalsB" Min="0" Style="width: 80px;" />
+                                            }
+                                            else if (match.IsFinished)
+                                            {
+                                                <FluentLabel Typo="Typography.H5" Style="width: 80px; text-align: center; font-weight: bold;">
+                                                    @match.GoalsTeamA
+                                                </FluentLabel>
+                                                <FluentLabel Typo="Typography.H6">:</FluentLabel>
+                                                <FluentLabel Typo="Typography.H5" Style="width: 80px; text-align: center; font-weight: bold;">
+                                                    @match.GoalsTeamB
+                                                </FluentLabel>
+                                            }
+                                            else
+                                            {
+                                                <FluentLabel Typo="Typography.Body" Style="width: 80px; text-align: center; color: var(--neutral-foreground-hint);">
+                                                    -
+                                                </FluentLabel>
+                                                <FluentLabel Typo="Typography.H6">:</FluentLabel>
+                                                <FluentLabel Typo="Typography.Body" Style="width: 80px; text-align: center; color: var(--neutral-foreground-hint);">
+                                                    -
+                                                </FluentLabel>
+                                            }
+
+                                            <FluentStack Orientation="Orientation.Vertical" Style="flex: 1; text-align: left;">
+                                                <FluentLabel Typo="Typography.Body" Style="font-weight: 600;">@match.TeamB.Name</FluentLabel>
+                                                @if (!string.IsNullOrEmpty(match.TeamB.Player1Name))
+                                                {
+                                                    <FluentLabel Typo="Typography.Body" Style="font-size: 0.85em; color: var(--neutral-foreground-hint);">
+                                                        @match.TeamB.Player1Name @(string.IsNullOrEmpty(match.TeamB.Player2Name) ? "" : $"& {match.TeamB.Player2Name}")
+                                                    </FluentLabel>
+                                                }
+                                            </FluentStack>
+                                        </FluentStack>
+
+                                        <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="10">
+                                            @if (editingMatchId == match.Id)
+                                            {
+                                                <FluentButton Appearance="Appearance.Accent" OnClick="SaveMatch">
+                                                    
+                                                    Speichern
+                                                </FluentButton>
+                                                <FluentButton Appearance="Appearance.Neutral" OnClick="CancelEdit">
+                                                    Abbrechen
+                                                </FluentButton>
+                                            }
+                                            else
+                                            {
+                                                <FluentButton Appearance="Appearance.Accent" OnClick="@(() => EditMatch(match))">
+                                                    
+                                                    @(match.IsFinished ? "Bearbeiten" : "Ergebnis eintragen")
+                                                </FluentButton>
+                                            }
+                                        </FluentStack>
+                                    </FluentStack>
+                                </FluentCard>
+                            }
+                        </FluentStack>
+                    </FluentStack>
+                </FluentCard>
+            </FluentGridItem>
+
+            <FluentGridItem xs="12" lg="5">
+                <FluentCard Style="padding: 20px; position: sticky; top: 20px;">
+                    <FluentStack Orientation="Orientation.Vertical" VerticalGap="15">
+                        <FluentLabel Typo="Typography.H5">Tabelle</FluentLabel>
+
+                        @if (!standings.Any())
+                        {
+                            <FluentMessageBar Intent="MessageIntent.Info">
+                                Noch keine Spiele abgeschlossen.
+                            </FluentMessageBar>
+                        }
+                        else
+                        {
+                            <div style="overflow-x: auto;">
+                                <FluentDataGrid Items="@standings.AsQueryable()" GridTemplateColumns="0.5fr 2fr 0.8fr 0.8fr 0.8fr 0.8fr 0.8fr 0.8fr 1fr" Style="width: 100%;">
+                                    <PropertyColumn Property="@(s => s.Position)" Title="Pl." Align="Align.Center" />
+                                    <PropertyColumn Property="@(s => s.Team.Name)" Title="Team" />
+                                    <PropertyColumn Property="@(s => s.MatchesPlayed)" Title="Sp." Align="Align.Center" />
+                                    <PropertyColumn Property="@(s => s.Wins)" Title="S" Align="Align.Center" />
+                                    <PropertyColumn Property="@(s => s.Draws)" Title="U" Align="Align.Center" />
+                                    <PropertyColumn Property="@(s => s.Losses)" Title="N" Align="Align.Center" />
+                                    <PropertyColumn Property="@(s => s.GoalsFor)" Title="T+" Align="Align.Center" />
+                                    <PropertyColumn Property="@(s => s.GoalsAgainst)" Title="T-" Align="Align.Center" />
+                                    <TemplateColumn Title="TD" Align="Align.Center">
+                                        <span style="@(context.GoalDifference > 0 ? "color: green; font-weight: bold;" : context.GoalDifference < 0 ? "color: red;" : "")">
+                                            @(context.GoalDifference > 0 ? $"+{context.GoalDifference}" : context.GoalDifference.ToString())
+                                        </span>
+                                    </TemplateColumn>
+                                    <TemplateColumn Title="Pkt." Align="Align.Center">
+                                        <strong>@context.Points</strong>
+                                    </TemplateColumn>
+                                </FluentDataGrid>
+                            </div>
+
+                            <FluentDivider />
+
+                            <FluentLabel Typo="Typography.Body" Style="font-size: 0.85em; color: var(--neutral-foreground-hint);">
+                                Sortierung: Punkte → Tordifferenz → Erzielte Tore → Direkter Vergleich
+                            </FluentLabel>
+
+                            @if (isGroupStageComplete && standings.Count >= 2)
+                            {
+                                <FluentDivider />
+                                <FluentLabel Typo="Typography.H6">Qualifikation für Finalrunde:</FluentLabel>
+                                <FluentStack Orientation="Orientation.Vertical" VerticalGap="5">
+                                    <FluentLabel>
+                                        
+                                        <strong>Finale:</strong> @standings[0].Team.Name vs @standings[1].Team.Name
+                                    </FluentLabel>
+                                    @if (standings.Count >= 4)
+                                    {
+                                        <FluentLabel>
+                                            
+                                            <strong>Platz 3:</strong> @standings[2].Team.Name vs @standings[3].Team.Name
+                                        </FluentLabel>
+                                    }
+                                    @if (standings.Count >= 5)
+                                    {
+                                        <FluentLabel Style="color: var(--neutral-foreground-hint);">
+                                            <strong>Platz 5:</strong> @standings[4].Team.Name
+                                        </FluentLabel>
+                                    }
+                                </FluentStack>
+                                <FluentButton Appearance="Appearance.Accent" OnClick="@(() => Navigation.NavigateTo("/finalstage"))" Style="width: 100%;">
+                                    
+                                    Zur Finalrunde
+                                </FluentButton>
+                            }
+                        }
+                    </FluentStack>
+                </FluentCard>
+            </FluentGridItem>
+        </FluentGrid>
+    }
+</FluentStack>
+
+@code {
+    private List<Match> groupStageMatches = new();
+    private List<Standing> standings = new();
+    private Guid? editingMatchId = null;
+    private int editGoalsA = 0;
+    private int editGoalsB = 0;
+    private bool isGroupStageComplete = false;
+    private int finishedMatches = 0;
+    private int totalMatches = 0;
+
+    protected override void OnInitialized()
+    {
+        TournamentService.OnChange += StateHasChanged;
+        LoadData();
+    }
+
+    private void LoadData()
+    {
+        groupStageMatches = TournamentService.Matches
+            .Where(m => m.Phase == MatchPhase.GroupStage)
+            .OrderBy(m => m.MatchNumber)
+            .ToList();
+
+        standings = TournamentService.GetStandings();
+        isGroupStageComplete = TournamentService.IsGroupStageComplete();
+        finishedMatches = groupStageMatches.Count(m => m.IsFinished);
+        totalMatches = groupStageMatches.Count;
+    }
+
+    private void EditMatch(Match match)
+    {
+        editingMatchId = match.Id;
+        editGoalsA = match.GoalsTeamA ?? 0;
+        editGoalsB = match.GoalsTeamB ?? 0;
+    }
+
+    private async Task SaveMatch()
+    {
+        if (editingMatchId.HasValue)
+        {
+            TournamentService.UpdateMatchResult(editingMatchId.Value, editGoalsA, editGoalsB);
+            await SaveState();
+            editingMatchId = null;
+            LoadData();
+        }
+    }
+
+    private void CancelEdit()
+    {
+        editingMatchId = null;
+        editGoalsA = 0;
+        editGoalsB = 0;
+    }
+
+    private async Task SaveState()
+    {
+        var state = TournamentService.SerializeState();
+        await LocalStorage.SetItemAsync("kickerturnier_state", state);
+    }
+
+    public void Dispose()
+    {
+        TournamentService.OnChange -= StateHasChanged;
+    }
+}

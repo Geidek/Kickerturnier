@@ -1,0 +1,20 @@
+﻿@inherits LayoutComponentBase
+
+<FluentLayout>
+    <FluentHeader>
+        <div style="display: flex; align-items: center; gap: 10px; padding: 0 20px;">
+            <FluentLabel Typo="Typography.H4" Style="margin: 0; color: var(--accent-fill-rest);">⚽ Kickerturnier</FluentLabel>
+        </div>
+    </FluentHeader>
+    <FluentStack Orientation="Orientation.Horizontal" Style="height: calc(100vh - 60px);">
+        <FluentNavMenu Width="250" Collapsible="true" Title="Navigation">
+            <FluentNavLink Href="/" Match="NavLinkMatch.All">🏠 Home</FluentNavLink>
+            <FluentNavLink Href="/teams">👥 Teams verwalten</FluentNavLink>
+            <FluentNavLink Href="/groupstage">📊 Vorrunde</FluentNavLink>
+            <FluentNavLink Href="/finalstage">🏆 Finalrunde</FluentNavLink>
+        </FluentNavMenu>
+        <FluentStack Orientation="Orientation.Vertical" Style="flex: 1; padding: 20px; overflow-y: auto;">
+            @Body
+        </FluentStack>
+    </FluentStack>
+</FluentLayout>
