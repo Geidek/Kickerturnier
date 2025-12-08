@@ -1,0 +1,442 @@
+@page "/finalstage"
+@inject TournamentService TournamentService
+@inject LocalStorageService LocalStorage
+@inject NavigationManager Navigation
+@implements IDisposable
+
+<PageTitle>Finalrunde</PageTitle>
+
+<FluentStack Orientation="Orientation.Vertical" VerticalGap="20">
+    <FluentCard Style="padding: 20px;">
+        <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center">
+            
+            <FluentLabel Typo="Typography.H4">Finalrunde - Turnier-Bracket</FluentLabel>
+        </FluentStack>
+    </FluentCard>
+
+    @if (finalMatch == null && thirdPlaceMatch == null)
+    {
+        <FluentMessageBar Intent="MessageIntent.Warning">
+            
+            Die Finalrunde wurde noch nicht generiert. Schließen Sie erst alle Vorrundenspiele ab.
+        </FluentMessageBar>
+        <FluentButton Appearance="Appearance.Accent" OnClick="@(() => Navigation.NavigateTo("/groupstage"))">
+            
+            Zur Vorrunde
+        </FluentButton>
+    }
+    else
+    {
+        @if (champion != null)
+        {
+            <FluentCard Style="padding: 30px; background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); border: 3px solid #FFD700;">
+                <FluentStack Orientation="Orientation.Vertical" VerticalAlignment="VerticalAlignment.Center" VerticalGap="15" Style="text-align: center;">
+                    
+                    <FluentLabel Typo="Typography.H3" Style="color: #000; font-weight: bold;">
+                        🏆 TURNIERSIEGER 🏆
+                    </FluentLabel>
+                    <FluentLabel Typo="Typography.H4" Style="color: #000;">
+                        @champion.Name
+                    </FluentLabel>
+                    @if (!string.IsNullOrEmpty(champion.Player1Name))
+                    {
+                        <FluentLabel Typo="Typography.Body" Style="color: #000; font-size: 1.1em;">
+                            @champion.Player1Name @(string.IsNullOrEmpty(champion.Player2Name) ? "" : $"& {champion.Player2Name}")
+                        </FluentLabel>
+                    }
+                </FluentStack>
+            </FluentCard>
+        }
+
+        <FluentGrid Spacing="3">
+            <!-- Final Match -->
+            @if (finalMatch != null)
+            {
+                <FluentGridItem xs="12" md="6">
+                    <FluentCard Style="padding: 25px; border: 2px solid #FFD700;">
+                        <FluentStack Orientation="Orientation.Vertical" VerticalGap="15">
+                            <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center">
+                                
+                                <FluentLabel Typo="Typography.H5" Style="color: #FFD700;">FINALE</FluentLabel>
+                            </FluentStack>
+
+                            <FluentLabel Typo="Typography.Body" Style="color: var(--neutral-foreground-hint);">
+                                Platz 1 der Vorrunde vs. Platz 2 der Vorrunde
+                            </FluentLabel>
+
+                            <FluentDivider />
+
+                            <!-- Team A -->
+                            <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" Style="gap: 15px;">
+                                <FluentStack Orientation="Orientation.Vertical" Style="flex: 1;">
+                                    <FluentLabel Typo="Typography.H6" Style="@GetTeamStyle(finalMatch, true)">
+                                        @finalMatch.TeamA.Name
+                                    </FluentLabel>
+                                    @if (!string.IsNullOrEmpty(finalMatch.TeamA.Player1Name))
+                                    {
+                                        <FluentLabel Typo="Typography.Body" Style="font-size: 0.9em; color: var(--neutral-foreground-hint);">
+                                            @finalMatch.TeamA.Player1Name @(string.IsNullOrEmpty(finalMatch.TeamA.Player2Name) ? "" : $"& {finalMatch.TeamA.Player2Name}")
+                                        </FluentLabel>
+                                    }
+                                </FluentStack>
+                                @if (editingMatchId == finalMatch.Id)
+                                {
+                                    <FluentNumberField @bind-Value="editGoalsA" Min="0" Style="width: 80px;" />
+                                }
+                                else if (finalMatch.IsFinished)
+                                {
+                                    <FluentLabel Typo="Typography.H4" Style="@GetScoreStyle(finalMatch, true)">
+                                        @finalMatch.GoalsTeamA
+                                    </FluentLabel>
+                                }
+                                else
+                                {
+                                    <FluentLabel Typo="Typography.H6" Style="color: var(--neutral-foreground-hint);">-</FluentLabel>
+                                }
+                            </FluentStack>
+
+                            <FluentDivider />
+
+                            <!-- Team B -->
+                            <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" Style="gap: 15px;">
+                                <FluentStack Orientation="Orientation.Vertical" Style="flex: 1;">
+                                    <FluentLabel Typo="Typography.H6" Style="@GetTeamStyle(finalMatch, false)">
+                                        @finalMatch.TeamB.Name
+                                    </FluentLabel>
+                                    @if (!string.IsNullOrEmpty(finalMatch.TeamB.Player1Name))
+                                    {
+                                        <FluentLabel Typo="Typography.Body" Style="font-size: 0.9em; color: var(--neutral-foreground-hint);">
+                                            @finalMatch.TeamB.Player1Name @(string.IsNullOrEmpty(finalMatch.TeamB.Player2Name) ? "" : $"& {finalMatch.TeamB.Player2Name}")
+                                        </FluentLabel>
+                                    }
+                                </FluentStack>
+                                @if (editingMatchId == finalMatch.Id)
+                                {
+                                    <FluentNumberField @bind-Value="editGoalsB" Min="0" Style="width: 80px;" />
+                                }
+                                else if (finalMatch.IsFinished)
+                                {
+                                    <FluentLabel Typo="Typography.H4" Style="@GetScoreStyle(finalMatch, false)">
+                                        @finalMatch.GoalsTeamB
+                                    </FluentLabel>
+                                }
+                                else
+                                {
+                                    <FluentLabel Typo="Typography.H6" Style="color: var(--neutral-foreground-hint);">-</FluentLabel>
+                                }
+                            </FluentStack>
+
+                            <FluentDivider />
+
+                            <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="10">
+                                @if (editingMatchId == finalMatch.Id)
+                                {
+                                    <FluentButton Appearance="Appearance.Accent" OnClick="SaveMatch">
+                                        
+                                        Speichern
+                                    </FluentButton>
+                                    <FluentButton Appearance="Appearance.Neutral" OnClick="CancelEdit">
+                                        Abbrechen
+                                    </FluentButton>
+                                }
+                                else
+                                {
+                                    <FluentButton Appearance="Appearance.Accent" OnClick="@(() => EditMatch(finalMatch))" Style="width: 100%;">
+                                        
+                                        @(finalMatch.IsFinished ? "Ergebnis bearbeiten" : "Ergebnis eintragen")
+                                    </FluentButton>
+                                }
+                            </FluentStack>
+                        </FluentStack>
+                    </FluentCard>
+                </FluentGridItem>
+            }
+
+            <!-- Third Place Match -->
+            @if (thirdPlaceMatch != null)
+            {
+                <FluentGridItem xs="12" md="6">
+                    <FluentCard Style="padding: 25px; border: 2px solid #CD7F32;">
+                        <FluentStack Orientation="Orientation.Vertical" VerticalGap="15">
+                            <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center">
+                                
+                                <FluentLabel Typo="Typography.H5" Style="color: #CD7F32;">SPIEL UM PLATZ 3</FluentLabel>
+                            </FluentStack>
+
+                            <FluentLabel Typo="Typography.Body" Style="color: var(--neutral-foreground-hint);">
+                                Platz 3 der Vorrunde vs. Platz 4 der Vorrunde
+                            </FluentLabel>
+
+                            <FluentDivider />
+
+                            <!-- Team A -->
+                            <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" Style="gap: 15px;">
+                                <FluentStack Orientation="Orientation.Vertical" Style="flex: 1;">
+                                    <FluentLabel Typo="Typography.H6" Style="@GetTeamStyle(thirdPlaceMatch, true)">
+                                        @thirdPlaceMatch.TeamA.Name
+                                    </FluentLabel>
+                                    @if (!string.IsNullOrEmpty(thirdPlaceMatch.TeamA.Player1Name))
+                                    {
+                                        <FluentLabel Typo="Typography.Body" Style="font-size: 0.9em; color: var(--neutral-foreground-hint);">
+                                            @thirdPlaceMatch.TeamA.Player1Name @(string.IsNullOrEmpty(thirdPlaceMatch.TeamA.Player2Name) ? "" : $"& {thirdPlaceMatch.TeamA.Player2Name}")
+                                        </FluentLabel>
+                                    }
+                                </FluentStack>
+                                @if (editingMatchId == thirdPlaceMatch.Id)
+                                {
+                                    <FluentNumberField @bind-Value="editGoalsA" Min="0" Style="width: 80px;" />
+                                }
+                                else if (thirdPlaceMatch.IsFinished)
+                                {
+                                    <FluentLabel Typo="Typography.H4" Style="@GetScoreStyle(thirdPlaceMatch, true)">
+                                        @thirdPlaceMatch.GoalsTeamA
+                                    </FluentLabel>
+                                }
+                                else
+                                {
+                                    <FluentLabel Typo="Typography.H6" Style="color: var(--neutral-foreground-hint);">-</FluentLabel>
+                                }
+                            </FluentStack>
+
+                            <FluentDivider />
+
+                            <!-- Team B -->
+                            <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" Style="gap: 15px;">
+                                <FluentStack Orientation="Orientation.Vertical" Style="flex: 1;">
+                                    <FluentLabel Typo="Typography.H6" Style="@GetTeamStyle(thirdPlaceMatch, false)">
+                                        @thirdPlaceMatch.TeamB.Name
+                                    </FluentLabel>
+                                    @if (!string.IsNullOrEmpty(thirdPlaceMatch.TeamB.Player1Name))
+                                    {
+                                        <FluentLabel Typo="Typography.Body" Style="font-size: 0.9em; color: var(--neutral-foreground-hint);">
+                                            @thirdPlaceMatch.TeamB.Player1Name @(string.IsNullOrEmpty(thirdPlaceMatch.TeamB.Player2Name) ? "" : $"& {thirdPlaceMatch.TeamB.Player2Name}")
+                                        </FluentLabel>
+                                    }
+                                </FluentStack>
+                                @if (editingMatchId == thirdPlaceMatch.Id)
+                                {
+                                    <FluentNumberField @bind-Value="editGoalsB" Min="0" Style="width: 80px;" />
+                                }
+                                else if (thirdPlaceMatch.IsFinished)
+                                {
+                                    <FluentLabel Typo="Typography.H4" Style="@GetScoreStyle(thirdPlaceMatch, false)">
+                                        @thirdPlaceMatch.GoalsTeamB
+                                    </FluentLabel>
+                                }
+                                else
+                                {
+                                    <FluentLabel Typo="Typography.H6" Style="color: var(--neutral-foreground-hint);">-</FluentLabel>
+                                }
+                            </FluentStack>
+
+                            <FluentDivider />
+
+                            <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="10">
+                                @if (editingMatchId == thirdPlaceMatch.Id)
+                                {
+                                    <FluentButton Appearance="Appearance.Accent" OnClick="SaveMatch">
+                                        
+                                        Speichern
+                                    </FluentButton>
+                                    <FluentButton Appearance="Appearance.Neutral" OnClick="CancelEdit">
+                                        Abbrechen
+                                    </FluentButton>
+                                }
+                                else
+                                {
+                                    <FluentButton Appearance="Appearance.Accent" OnClick="@(() => EditMatch(thirdPlaceMatch))" Style="width: 100%;">
+                                        
+                                        @(thirdPlaceMatch.IsFinished ? "Ergebnis bearbeiten" : "Ergebnis eintragen")
+                                    </FluentButton>
+                                }
+                            </FluentStack>
+                        </FluentStack>
+                    </FluentCard>
+                </FluentGridItem>
+            }
+        </FluentGrid>
+
+        <!-- Final Rankings -->
+        @if (champion != null || thirdPlace != null)
+        {
+            <FluentCard Style="padding: 20px;">
+                <FluentStack Orientation="Orientation.Vertical" VerticalGap="15">
+                    <FluentLabel Typo="Typography.H5">Endstand</FluentLabel>
+                    
+                    <FluentGrid Spacing="2">
+                        @if (champion != null)
+                        {
+                            <FluentGridItem xs="12" sm="6" md="3">
+                                <FluentCard Style="padding: 15px; background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); border: 2px solid #FFD700;">
+                                    <FluentStack Orientation="Orientation.Vertical" VerticalAlignment="VerticalAlignment.Center" Style="text-align: center;" VerticalGap="10">
+                                        
+                                        <FluentLabel Typo="Typography.H6" Style="color: #000;">1. Platz</FluentLabel>
+                                        <FluentLabel Typo="Typography.Body" Style="color: #000; font-weight: bold;">@champion.Name</FluentLabel>
+                                    </FluentStack>
+                                </FluentCard>
+                            </FluentGridItem>
+                        }
+                        
+                        @if (runnerUp != null)
+                        {
+                            <FluentGridItem xs="12" sm="6" md="3">
+                                <FluentCard Style="padding: 15px; background: linear-gradient(135deg, #C0C0C0 0%, #A0A0A0 100%); border: 2px solid #C0C0C0;">
+                                    <FluentStack Orientation="Orientation.Vertical" VerticalAlignment="VerticalAlignment.Center" Style="text-align: center;" VerticalGap="10">
+                                        
+                                        <FluentLabel Typo="Typography.H6" Style="color: #000;">2. Platz</FluentLabel>
+                                        <FluentLabel Typo="Typography.Body" Style="color: #000; font-weight: bold;">@runnerUp.Name</FluentLabel>
+                                    </FluentStack>
+                                </FluentCard>
+                            </FluentGridItem>
+                        }
+                        
+                        @if (thirdPlace != null)
+                        {
+                            <FluentGridItem xs="12" sm="6" md="3">
+                                <FluentCard Style="padding: 15px; background: linear-gradient(135deg, #CD7F32 0%, #B87333 100%); border: 2px solid #CD7F32;">
+                                    <FluentStack Orientation="Orientation.Vertical" VerticalAlignment="VerticalAlignment.Center" Style="text-align: center;" VerticalGap="10">
+                                        
+                                        <FluentLabel Typo="Typography.H6" Style="color: #000;">3. Platz</FluentLabel>
+                                        <FluentLabel Typo="Typography.Body" Style="color: #000; font-weight: bold;">@thirdPlace.Name</FluentLabel>
+                                    </FluentStack>
+                                </FluentCard>
+                            </FluentGridItem>
+                        }
+
+                        @if (fourthPlace != null)
+                        {
+                            <FluentGridItem xs="12" sm="6" md="3">
+                                <FluentCard Style="padding: 15px; border: 2px solid var(--neutral-stroke-strong);">
+                                    <FluentStack Orientation="Orientation.Vertical" VerticalAlignment="VerticalAlignment.Center" Style="text-align: center;" VerticalGap="10">
+                                        
+                                        <FluentLabel Typo="Typography.H6">4. Platz</FluentLabel>
+                                        <FluentLabel Typo="Typography.Body" Style="font-weight: bold;">@fourthPlace.Name</FluentLabel>
+                                    </FluentStack>
+                                </FluentCard>
+                            </FluentGridItem>
+                        }
+
+                        @if (fifthPlace != null)
+                        {
+                            <FluentGridItem xs="12" sm="6" md="3">
+                                <FluentCard Style="padding: 15px; border: 2px solid var(--neutral-stroke-strong);">
+                                    <FluentStack Orientation="Orientation.Vertical" VerticalAlignment="VerticalAlignment.Center" Style="text-align: center;" VerticalGap="10">
+                                        
+                                        <FluentLabel Typo="Typography.H6">5. Platz</FluentLabel>
+                                        <FluentLabel Typo="Typography.Body" Style="font-weight: bold;">@fifthPlace.Name</FluentLabel>
+                                    </FluentStack>
+                                </FluentCard>
+                            </FluentGridItem>
+                        }
+                    </FluentGrid>
+                </FluentStack>
+            </FluentCard>
+        }
+    }
+</FluentStack>
+
+@code {
+    private Match? finalMatch;
+    private Match? thirdPlaceMatch;
+    private Team? champion;
+    private Team? runnerUp;
+    private Team? thirdPlace;
+    private Team? fourthPlace;
+    private Team? fifthPlace;
+    
+    private Guid? editingMatchId = null;
+    private int editGoalsA = 0;
+    private int editGoalsB = 0;
+
+    protected override void OnInitialized()
+    {
+        TournamentService.OnChange += StateHasChanged;
+        LoadData();
+    }
+
+    private void LoadData()
+    {
+        finalMatch = TournamentService.GetFinalMatch();
+        thirdPlaceMatch = TournamentService.GetThirdPlaceMatch();
+        champion = TournamentService.GetChampion();
+        runnerUp = TournamentService.GetRunnerUp();
+        thirdPlace = TournamentService.GetThirdPlace();
+
+        // Determine 4th and 5th places from standings
+        var standings = TournamentService.GetStandings();
+        if (standings.Count >= 4)
+        {
+            // 4th place is the loser of the third place match
+            if (thirdPlaceMatch?.IsFinished == true)
+            {
+                fourthPlace = thirdPlaceMatch.GoalsTeamA < thirdPlaceMatch.GoalsTeamB 
+                    ? thirdPlaceMatch.TeamA 
+                    : thirdPlaceMatch.TeamB;
+            }
+            else
+            {
+                fourthPlace = standings[3].Team;
+            }
+        }
+        if (standings.Count >= 5)
+        {
+            fifthPlace = standings[4].Team;
+        }
+    }
+
+    private void EditMatch(Match match)
+    {
+        editingMatchId = match.Id;
+        editGoalsA = match.GoalsTeamA ?? 0;
+        editGoalsB = match.GoalsTeamB ?? 0;
+    }
+
+    private async Task SaveMatch()
+    {
+        if (editingMatchId.HasValue)
+        {
+            TournamentService.UpdateMatchResult(editingMatchId.Value, editGoalsA, editGoalsB);
+            await SaveState();
+            editingMatchId = null;
+            LoadData();
+        }
+    }
+
+    private void CancelEdit()
+    {
+        editingMatchId = null;
+        editGoalsA = 0;
+        editGoalsB = 0;
+    }
+
+    private string GetTeamStyle(Match match, bool isTeamA)
+    {
+        if (!match.IsFinished) return "";
+        
+        var teamGoals = isTeamA ? match.GoalsTeamA!.Value : match.GoalsTeamB!.Value;
+        var opponentGoals = isTeamA ? match.GoalsTeamB!.Value : match.GoalsTeamA!.Value;
+        
+        return teamGoals > opponentGoals ? "font-weight: bold; color: var(--accent-fill-rest);" : "";
+    }
+
+    private string GetScoreStyle(Match match, bool isTeamA)
+    {
+        if (!match.IsFinished) return "";
+        
+        var teamGoals = isTeamA ? match.GoalsTeamA!.Value : match.GoalsTeamB!.Value;
+        var opponentGoals = isTeamA ? match.GoalsTeamB!.Value : match.GoalsTeamA!.Value;
+        
+        return teamGoals > opponentGoals ? "font-weight: bold; color: var(--accent-fill-rest);" : "color: var(--neutral-foreground-hint);";
+    }
+
+    private async Task SaveState()
+    {
+        var state = TournamentService.SerializeState();
+        await LocalStorage.SetItemAsync("kickerturnier_state", state);
+    }
+
+    public void Dispose()
+    {
+        TournamentService.OnChange -= StateHasChanged;
+    }
+}
