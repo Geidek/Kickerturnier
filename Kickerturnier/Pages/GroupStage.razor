@@ -17,12 +17,10 @@
     @if (!groupStageMatches.Any())
     {
         <FluentMessageBar Intent="MessageIntent.Warning">
-            
-            Noch keine Vorrundenspiele vorhanden. Gehen Sie zu "Teams verwalten" und starten Sie das Turnier.
+            ⚠️ Noch keine Vorrundenspiele vorhanden. Gehen Sie zu "Teams verwalten" und starten Sie das Turnier.
         </FluentMessageBar>
         <FluentButton Appearance="Appearance.Accent" OnClick="@(() => Navigation.NavigateTo("/teams"))">
-            
-            Zu Teams verwalten
+            👥 Zu Teams verwalten
         </FluentButton>
     }
     else
@@ -36,8 +34,7 @@
                         @if (isGroupStageComplete)
                         {
                             <FluentMessageBar Intent="MessageIntent.Success">
-                                
-                                Alle Vorrundenspiele sind abgeschlossen! Die Finalrunde wurde generiert.
+                                ✅ Alle Vorrundenspiele sind abgeschlossen! Die Finalrunde wurde generiert.
                             </FluentMessageBar>
                         }
 
@@ -103,18 +100,16 @@
                                             @if (editingMatchId == match.Id)
                                             {
                                                 <FluentButton Appearance="Appearance.Accent" OnClick="SaveMatch">
-                                                    
-                                                    Speichern
+                                                    💾 Speichern
                                                 </FluentButton>
                                                 <FluentButton Appearance="Appearance.Neutral" OnClick="CancelEdit">
-                                                    Abbrechen
+                                                    ❌ Abbrechen
                                                 </FluentButton>
                                             }
                                             else
                                             {
                                                 <FluentButton Appearance="Appearance.Accent" OnClick="@(() => EditMatch(match))">
-                                                    
-                                                    @(match.IsFinished ? "Bearbeiten" : "Ergebnis eintragen")
+                                                    ✏️ @(match.IsFinished ? "Bearbeiten" : "Ergebnis eintragen")
                                                 </FluentButton>
                                             }
                                         </FluentStack>
@@ -162,38 +157,35 @@
 
                             <FluentDivider />
 
-                            <FluentLabel Typo="Typography.Body" Style="font-size: 0.85em; color: var(--neutral-foreground-hint);">
-                                Sortierung: Punkte → Tordifferenz → Erzielte Tore → Direkter Vergleich
-                            </FluentLabel>
+                                <FluentLabel Typo="Typography.Body" Style="font-size: 0.85em; color: var(--neutral-foreground-hint);">
+                                    Sortierung: Punkte → Tordifferenz → Erzielte Tore → Direkter Vergleich
+                                </FluentLabel>
 
-                            @if (isGroupStageComplete && standings.Count >= 2)
-                            {
-                                <FluentDivider />
-                                <FluentLabel Typo="Typography.H6">Qualifikation für Finalrunde:</FluentLabel>
-                                <FluentStack Orientation="Orientation.Vertical" VerticalGap="5">
-                                    <FluentLabel>
-                                        
-                                        <strong>Finale:</strong> @standings[0].Team.Name vs @standings[1].Team.Name
-                                    </FluentLabel>
-                                    @if (standings.Count >= 4)
-                                    {
-                                        <FluentLabel>
-                                            
-                                            <strong>Platz 3:</strong> @standings[2].Team.Name vs @standings[3].Team.Name
+                                @if (isGroupStageComplete && standings.Count >= 2)
+                                {
+                                    <FluentDivider />
+                                    <FluentLabel Typo="Typography.H6">Qualifikation für Finalrunde:</FluentLabel>
+                                    <FluentStack Orientation="Orientation.Vertical" VerticalGap="5">
+                                        <FluentLabel Typo="Typography.Body">
+                                            🥇 <strong>Finale:</strong> @standings[0].Team.Name vs @standings[1].Team.Name
                                         </FluentLabel>
-                                    }
-                                    @if (standings.Count >= 5)
-                                    {
-                                        <FluentLabel Style="color: var(--neutral-foreground-hint);">
-                                            <strong>Platz 5:</strong> @standings[4].Team.Name
-                                        </FluentLabel>
-                                    }
-                                </FluentStack>
-                                <FluentButton Appearance="Appearance.Accent" OnClick="@(() => Navigation.NavigateTo("/finalstage"))" Style="width: 100%;">
-                                    
-                                    Zur Finalrunde
-                                </FluentButton>
-                            }
+                                        @if (standings.Count >= 4)
+                                        {
+                                            <FluentLabel Typo="Typography.Body">
+                                                🥉 <strong>Platz 3:</strong> @standings[2].Team.Name vs @standings[3].Team.Name
+                                            </FluentLabel>
+                                        }
+                                        @if (standings.Count >= 5)
+                                        {
+                                            <FluentLabel Typo="Typography.Body" Style="color: var(--neutral-foreground-hint);">
+                                                <strong>Platz 5:</strong> @standings[4].Team.Name
+                                            </FluentLabel>
+                                        }
+                                    </FluentStack>
+                                    <FluentButton Appearance="Appearance.Accent" OnClick="@(() => Navigation.NavigateTo("/finalstage"))" Style="width: 100%;">
+                                        🏆 Zur Finalrunde
+                                    </FluentButton>
+                                }
                         }
                     </FluentStack>
                 </FluentCard>

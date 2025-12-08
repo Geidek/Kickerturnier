@@ -17,12 +17,10 @@
     @if (finalMatch == null && thirdPlaceMatch == null)
     {
         <FluentMessageBar Intent="MessageIntent.Warning">
-            
-            Die Finalrunde wurde noch nicht generiert. Schließen Sie erst alle Vorrundenspiele ab.
+            ⚠️ Die Finalrunde wurde noch nicht generiert. Schließen Sie erst alle Vorrundenspiele ab.
         </FluentMessageBar>
         <FluentButton Appearance="Appearance.Accent" OnClick="@(() => Navigation.NavigateTo("/groupstage"))">
-            
-            Zur Vorrunde
+            📊 Zur Vorrunde
         </FluentButton>
     }
     else
@@ -132,18 +130,16 @@
                                 @if (editingMatchId == finalMatch.Id)
                                 {
                                     <FluentButton Appearance="Appearance.Accent" OnClick="SaveMatch">
-                                        
-                                        Speichern
+                                        💾 Speichern
                                     </FluentButton>
                                     <FluentButton Appearance="Appearance.Neutral" OnClick="CancelEdit">
-                                        Abbrechen
+                                        ❌ Abbrechen
                                     </FluentButton>
                                 }
                                 else
                                 {
                                     <FluentButton Appearance="Appearance.Accent" OnClick="@(() => EditMatch(finalMatch))" Style="width: 100%;">
-                                        
-                                        @(finalMatch.IsFinished ? "Ergebnis bearbeiten" : "Ergebnis eintragen")
+                                        ✏️ @(finalMatch.IsFinished ? "Ergebnis bearbeiten" : "Ergebnis eintragen")
                                     </FluentButton>
                                 }
                             </FluentStack>
@@ -235,18 +231,16 @@
                                 @if (editingMatchId == thirdPlaceMatch.Id)
                                 {
                                     <FluentButton Appearance="Appearance.Accent" OnClick="SaveMatch">
-                                        
-                                        Speichern
+                                        💾 Speichern
                                     </FluentButton>
                                     <FluentButton Appearance="Appearance.Neutral" OnClick="CancelEdit">
-                                        Abbrechen
+                                        ❌ Abbrechen
                                     </FluentButton>
                                 }
                                 else
                                 {
                                     <FluentButton Appearance="Appearance.Accent" OnClick="@(() => EditMatch(thirdPlaceMatch))" Style="width: 100%;">
-                                        
-                                        @(thirdPlaceMatch.IsFinished ? "Ergebnis bearbeiten" : "Ergebnis eintragen")
+                                        ✏️ @(thirdPlaceMatch.IsFinished ? "Ergebnis bearbeiten" : "Ergebnis eintragen")
                                     </FluentButton>
                                 }
                             </FluentStack>
