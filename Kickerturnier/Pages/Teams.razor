@@ -190,30 +190,19 @@
         }
 
         // Shuffle the players randomly
-        var random = new Random();
+        var random = new Random(Environment.TickCount);
         players = players.OrderBy(x => random.Next()).ToList();
 
         // Create teams of 2 players
         int teamNumber = 1;
         for (int i = 0; i < players.Count; i += 2)
         {
-            var team = new Team();
-            
-            if (i < players.Count)
+            var team = new Team
             {
-                team.Player1Name = players[i];
-            }
-            
-            if (i + 1 < players.Count)
-            {
-                team.Player2Name = players[i + 1];
-                team.Name = $"Team {teamNumber}";
-            }
-            else
-            {
-                // Odd number of players - last team has only one player
-                team.Name = $"Team {teamNumber}";
-            }
+                Player1Name = players[i],
+                Player2Name = i + 1 < players.Count ? players[i + 1] : string.Empty,
+                Name = $"Team {teamNumber}"
+            };
 
             // Check if team with same name exists
             var baseName = team.Name;
