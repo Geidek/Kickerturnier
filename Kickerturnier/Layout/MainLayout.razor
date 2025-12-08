@@ -13,8 +13,10 @@
             <FluentNavLink Href="/groupstage">📊 Vorrunde</FluentNavLink>
             <FluentNavLink Href="/finalstage">🏆 Finalrunde</FluentNavLink>
         </FluentNavMenu>
-        <FluentStack Orientation="Orientation.Vertical" Style="flex: 1; padding: 20px; overflow-y: auto;">
-            @Body
+        <FluentStack Orientation="Orientation.Vertical" Style="flex: 1; overflow-y: auto; width: 100%;">
+            <div style="padding: 20px; width: 100%; max-width: 100%; box-sizing: border-box;">
+                @Body
+            </div>
         </FluentStack>
     </FluentStack>
 </FluentLayout>
