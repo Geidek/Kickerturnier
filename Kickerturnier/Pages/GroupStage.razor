@@ -135,8 +135,8 @@
                         else
                         {
                             <div style="overflow-x: auto;">
-                                <FluentDataGrid Items="@standings.AsQueryable()" GridTemplateColumns="0.5fr 2fr 0.8fr 0.8fr 0.8fr 0.8fr 0.8fr 0.8fr 1fr" Style="width: 100%;">
-                                    <PropertyColumn Property="@(s => s.Position)" Title="Pl." Align="Align.Center" />
+                                <FluentDataGrid Items="@standings.AsQueryable()" ResizableColumns="true" Style="width: 100%;">
+                                    <PropertyColumn Property="@(s => s.Position)" Title="Pl." Align="Align.Center" InitialSortDirection="SortDirection.Ascending" IsDefaultSortColumn="true" />
                                     <PropertyColumn Property="@(s => s.Team.Name)" Title="Team" />
                                     <PropertyColumn Property="@(s => s.MatchesPlayed)" Title="Sp." Align="Align.Center" />
                                     <PropertyColumn Property="@(s => s.Wins)" Title="S" Align="Align.Center" />
