@@ -140,12 +140,12 @@
                             <PropertyColumn Property="@(s => s.Losses)" Title="Niederlagen" Align="Align.Center" Sortable="true" />
                             <PropertyColumn Property="@(s => s.GoalsFor)" Title="Tore +" Align="Align.Center" Sortable="true" />
                             <PropertyColumn Property="@(s => s.GoalsAgainst)" Title="Tore -" Align="Align.Center" Sortable="true" />
-                            <TemplateColumn Title="Tordifferenz" Align="Align.Center" SortBy="@(GridSort<Standing>.ByAscending(s => s.GoalDifference))">
+                            <TemplateColumn Title="Tordifferenz" Align="Align.Center" SortBy="@(GridSort<Standing>.ByDescending(s => s.GoalDifference))">
                                 <span style="@(context.GoalDifference > 0 ? "color: green; font-weight: bold;" : context.GoalDifference < 0 ? "color: red;" : "")">
                                     @(context.GoalDifference > 0 ? $"+{context.GoalDifference}" : context.GoalDifference.ToString())
                                 </span>
                             </TemplateColumn>
-                            <TemplateColumn Title="Punkte" Align="Align.Center" SortBy="@(GridSort<Standing>.ByAscending(s => s.Points))">
+                            <TemplateColumn Title="Punkte" Align="Align.Center" SortBy="@(GridSort<Standing>.ByDescending(s => s.Points))">
                                 <strong>@context.Points</strong>
                             </TemplateColumn>
                         </FluentDataGrid>
