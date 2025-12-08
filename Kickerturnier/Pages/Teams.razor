@@ -119,17 +119,23 @@
                             @foreach (var team in TournamentService.Teams)
                             {
                                 <FluentCard Style="padding: 15px; background-color: var(--neutral-layer-2);">
-                                    <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center">
-                                        <FluentStack Orientation="Orientation.Vertical" Style="flex: 1;">
+                                    <FluentStack Orientation="Orientation.Vertical" VerticalGap="10">
+                                        <FluentStack Orientation="Orientation.Vertical" VerticalGap="5">
                                             <FluentLabel Typo="Typography.H6">@team.Name</FluentLabel>
-                                            @if (!string.IsNullOrEmpty(team.Player1Name) || !string.IsNullOrEmpty(team.Player2Name))
+                                            @if (!string.IsNullOrEmpty(team.Player1Name))
                                             {
                                                 <FluentLabel Typo="Typography.Body" Style="font-size: 0.9em;">
-                                                    @team.Player1Name@(string.IsNullOrEmpty(team.Player1Name) || string.IsNullOrEmpty(team.Player2Name) ? "" : " & ")@team.Player2Name
+                                                    @team.Player1Name
+                                                </FluentLabel>
+                                            }
+                                            @if (!string.IsNullOrEmpty(team.Player2Name))
+                                            {
+                                                <FluentLabel Typo="Typography.Body" Style="font-size: 0.9em;">
+                                                    @team.Player2Name
                                                 </FluentLabel>
                                             }
                                         </FluentStack>
-                                         <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="5">
+                                        <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="5">
                                             <FluentButton Appearance="Appearance.Lightweight" OnClick="@(() => EditTeam(team))" Title="Team bearbeiten">
                                                 ✏️
                                             </FluentButton>
