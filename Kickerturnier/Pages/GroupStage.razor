@@ -25,9 +25,9 @@
     }
     else
     {
-        <FluentGrid Spacing="3">
-            <FluentGridItem xs="12" lg="7">
-                <FluentCard Style="padding: 20px;">
+        <FluentSplitter Style="height: calc(100vh - 200px);" Panel1Size="60%" Panel2Size="40%" BarSize="8">
+            <Panel1>
+                <FluentCard Style="padding: 20px; height: 100%; overflow-y: auto;">
                     <FluentStack Orientation="Orientation.Vertical" VerticalGap="15">
                         <FluentLabel Typo="Typography.H5">Spiele (@finishedMatches / @totalMatches abgeschlossen)</FluentLabel>
 
@@ -119,10 +119,10 @@
                         </FluentStack>
                     </FluentStack>
                 </FluentCard>
-            </FluentGridItem>
+            </Panel1>
 
-            <FluentGridItem xs="12" lg="5">
-                <FluentCard Style="padding: 20px; position: sticky; top: 20px;">
+            <Panel2>
+                <FluentCard Style="padding: 20px; height: 100%; overflow-y: auto;">
                     <FluentStack Orientation="Orientation.Vertical" VerticalGap="15">
                         <FluentLabel Typo="Typography.H5">Tabelle</FluentLabel>
 
@@ -189,8 +189,8 @@
                         }
                     </FluentStack>
                 </FluentCard>
-            </FluentGridItem>
-        </FluentGrid>
+            </Panel2>
+        </FluentSplitter>
     }
 </FluentStack>
 
