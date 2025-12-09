@@ -1,6 +1,7 @@
 # Kickerturnier - Foosball Tournament Management
 
 Eine vollständige Blazor WebAssembly-Anwendung zur Verwaltung von Kickerturnieren (Tischfußball) mit .NET 10.
+Vollständig KI generiert. 
 
 ## 📋 Überblick
 
